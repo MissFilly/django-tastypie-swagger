@@ -141,6 +141,7 @@ class ResourceSwaggerMapping(object):
                     required=not field['blank'],
                     description=force_text(field['help_text']),
                 ))
+
         return parameters
 
     def build_parameters_for_list(self, method='GET'):
@@ -149,6 +150,17 @@ class ResourceSwaggerMapping(object):
         # So far use case for ordering are only on GET request.
         if 'ordering' in self.schema and method.upper() == 'GET':
             parameters.append(self.build_parameters_from_ordering())
+
+        if hasattr(self.resource._meta, 'extra_list_params'):
+            for name, field in self.resource._meta.extra_list_params.items():
+                parameters.append(self.build_parameter(
+                    paramType=field.get("param_type", "query"),
+                    name=name,
+                    dataType=field.get("type", "string"),
+                    required=field.get("required", True),
+                    description=force_text(field.get("description", "")),
+                ))
+
         return parameters
 
     def build_parameters_from_ordering(self):
